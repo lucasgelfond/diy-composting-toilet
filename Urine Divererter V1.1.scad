@@ -46,13 +46,16 @@ tubeOverlap = 1;
 //Mode 1 is the two pieces of the diverter separated, and mode 2 is the two pieces together in assembled form. 
 mode = 1;
 
+//The reciprocal of the cutoff variable/amount of the diverter that is kept. 
+cutoffRecip = 1/cutoffAmount;
+
 //Computed variables
 diverterHeight = stage1Height+stage2Height+tubeLength;
 
 module mainDiverter() {
     difference() {
         union() {
-            //Adding the two main cylinders together - adding stage 1 and stage 2 together (NOTE - test diameter stuff later!)
+            //Adding the two main cylinders together - adding stage 1 and stage 2 together (NOTE - test diameter stuff later!). R2s/D2s are different because these need to slope down to get to the adapted diameter (variables stage1Reduction and stage2Reduction) above. 
             cylinder(r2=bucketDiameter/2, r1=stage1Reduction/2, h=stage1Height, $fn=sfn, center=true);
             translate([0,0,(stage1Height+stage2Height)/-2]) {
                 cylinder(r2=stage1Reduction/2, r1=stage2Reduction/2, h=stage2Height, $fn=sfn, center=true);
@@ -71,7 +74,10 @@ module mainDiverter() {
 module partialDiverter() {
     difference() {
         mainDiverter();
-        translate([(bucketDiameter+stage2Reduction)/(1/cutoffAmount), 0, (stage1Height+overlap-cutoff)/-2]) {
+        //Cutting the main diverter in half/into a fraction that is whatever the cutoff amount is.
+        //CLARIFY what the translate statement does
+        translate([(bucketDiameter+stage2Reduction)/cutoffRecip, 0, (stage1Height+overlap-cutoff)/-2]) {
+            //A cube that is exactly the size of the main diverter. Translated to determine how much is actually cutoff. Clarify cutoff variable inside. 
             cube([bucketDiameter, bucketDiameter, stage1Height+stage2Height+tubeLength+overlap-cutoff], center=true);
         }
     }
@@ -81,7 +87,8 @@ module partialDiverter() {
 
 module coverGuard() {
     intersection() {
-        hull() translate([bucketDiameter/(1/cutoffAmount), 0,0]) partialDiverter();
+        //Taking a whole version (no holes) of the main diverter.
+        hull() translate([bucketDiameter/cutoffRecip, 0,0]) partialDiverter();
         translate([bucketDiameter/(1/cutoffAmount)/2+thickness,0,(stage1Height/2+thickness+cutoff/2)/-1]) {
             cube([thickness, bucketDiameter, (stage1Height+stage2Height-cutoff/2+thickness*2)], center=true);
         }
@@ -118,6 +125,7 @@ module separation() {
 }
     
 module final() {
+    //All variables are in imperial and OpenSCAD runs in metric. This is scaling the WHOLE MODEL up by x25.4 to convert everything easily from imperial to metric.
     scale([25.4, 25.4, 25.4])  {
         if(mode == 1) {
             separation();
