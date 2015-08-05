@@ -1,37 +1,64 @@
 //FIX CUTOFF AMOUNT NOT PARAMETRIC YET
 //NEED TO COMMENT OUT ALL FUNCTIONS
 
+//The diameter of the bucket being used.
 bucketDiameter = 11;
+
+//The height of the first stage (the top stage) of the urine diverter.
 stage1Height = 1.75;
+
+//The height of the second stage (the bottom stage) of the urine diverter.
 stage2Height = 1.75;
+
+//What diameter Stage 1 reduces to.
 stage1Reduction = 10;
+//What diameter stage 2 reduces to.
 stage2Reduction = 0.5;
 
+//How much length-wise of the diverter is kept. Typical value between 1/2 and 1/3.
 cutoffAmount = 1/3;
 
+
+//Detail of all circular and spherical objects. Essentially amount of sides. Value between 30 and 100 is standard.
 sfn=100;
+
+//The overall thickness of the diverter.
 thickness = 0.125;
+
+//The length of the tube protruding from the end of the bottom tube.
 tubeLength = 0.75;
+
+//The amount that cut holes will overlap. Value between 0.1 and 1.5 or so should be fine.
 overlap = 1;
+
+// - ? Will patch this later
 cutoff=0;
+
+//Amount to cutoff when I simply need to pierce everything. 
 largeNumber = 100;
 
+//The distance between the two halves of the diverter when printing.
 distBetween = 2.5;
 
-diverterHeight = stage1Height+stage2Height+tubeLength;
-
+//The overlap of the tube with the diverter. With a value of 0, there is no solid bridge between the tube at the end and the bottom of the diverter.
 tubeOverlap = 1;
 
+//Mode 1 is the two pieces of the diverter separated, and mode 2 is the two pieces together in assembled form. 
 mode = 1;
+
+//Computed variables
+diverterHeight = stage1Height+stage2Height+tubeLength;
 
 module mainDiverter() {
     difference() {
         union() {
+            //Adding the two main cylinders together - adding stage 1 and stage 2 together (NOTE - test diameter stuff later!)
             cylinder(r2=bucketDiameter/2, r1=stage1Reduction/2, h=stage1Height, $fn=sfn, center=true);
             translate([0,0,(stage1Height+stage2Height)/-2]) {
                 cylinder(r2=stage1Reduction/2, r1=stage2Reduction/2, h=stage2Height, $fn=sfn, center=true);
             }
         }
+        //Hollowing the top and bottom stages by removing cylinders the same size, except minus the thickness to leave nothing but  the thickness.
         translate([0,0,thickness/2]) {
              cylinder(r2=(bucketDiameter-thickness*2)/2, r1=(stage1Reduction-thickness*2)/2, h=stage1Height, $fn=sfn, center=true);
         }
