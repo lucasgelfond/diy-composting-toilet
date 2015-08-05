@@ -90,6 +90,7 @@ module coverGuard() {
         //Taking a whole version (no holes) of the main diverter.
         hull() translate([bucketDiameter/cutoffRecip, 0,0]) partialDiverter();
         translate([bucketDiameter/(1/cutoffAmount)/2+thickness,0,(stage1Height/2+thickness+cutoff/2)/-1]) {
+            //Taking the intersection of a small cube and a completely convex version of the main piece. This will produce a completely flat cover that adapts perfectly to the shape of the main diverter.
             cube([thickness, bucketDiameter, (stage1Height+stage2Height-cutoff/2+thickness*2)], center=true);
         }
     }  
@@ -97,6 +98,7 @@ module coverGuard() {
 
 module tube() {
     difference() {
+        //Explain translate statement later.
         translate([(bucketDiameter/(-1/cutoffAmount))/2-thickness,0,(stage1Height/2+stage2Height/2+tubeLength)/-1+tubeOverlap]) cylinder(r=stage2Reduction/2, h=tubeLength+tubeOverlap*2, $fn=sfn, center=true);
        hull() partialDiverter(); 
     }
@@ -105,15 +107,19 @@ module tube() {
 module fullDiverter() {
     difference() {
         union() {
+            //Adding the partial diverter, cover (for closing off the diverter) amd then the tube.
             partialDiverter();
             translate([bucketDiameter/(-1/cutoffAmount),0,0]) coverGuard();
             tube();
         }
+        //Then, subtracting the inside portion of the tube (hole) so that water/urine can actually pass through.
        translate([(bucketDiameter/(-1/cutoffAmount))/2-thickness,0,(stage1Height/2+stage2Height/2+tubeLength)/-1+overlap]) cylinder(r=(stage2Reduction-thickness*2)/2, h=largeNumber, center=true, $fn=sfn);
     }
 }
 
+//NOTE - NEED TO FIX IN OPENSCAD TO MAKE SURE THIS WORKS WITH THE PROPORTIONS.
 module separation() {
+    //Separating the two pieces for easier printing on smaller 3D printers.
     translate([0,bucketDiameter/4-thickness,0]) rotate([0,90,0]) difference() {
         fullDiverter();
         translate([0,bucketDiameter/4,(diverterHeight+thickness*2)/-4]) cube([bucketDiameter, bucketDiameter/2, diverterHeight+thickness*2], center=true);
@@ -127,6 +133,7 @@ module separation() {
 module final() {
     //All variables are in imperial and OpenSCAD runs in metric. This is scaling the WHOLE MODEL up by x25.4 to convert everything easily from imperial to metric.
     scale([25.4, 25.4, 25.4])  {
+        //If the mode is 1, add the separated pieces, and if the mode is 2, add the assembled diverter.
         if(mode == 1) {
             separation();
         }
